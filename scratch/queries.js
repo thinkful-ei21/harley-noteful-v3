@@ -5,27 +5,27 @@ const { MONGODB_URI } = require('../config');
 
 const Note = require('../models/note');
 
-// mongoose.connect(MONGODB_URI)
-//   .then(() => {
-//     const searchTerm = 'lady gaga';
-//     let filter = {};
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    const searchTerm = 'Posuere';
+    let filter = {};
 
-//     if (searchTerm) {
-//       filter.title = { $regex: searchTerm };
-//     }
+    if (searchTerm) {
+      filter = {$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]};
+    }
 
-//     return Note.find(filter).sort({ updatedAt: 'desc' });
-//   })    
-//   .then(results => {
-//     console.log(results);
-//   })
-//   .then(() => {
-//     return mongoose.disconnect();
-//   })
-//   .catch(err => {
-//     console.error(`ERROR: ${err.message}`);
-//     console.error(err);
-//   });
+    return Note.find(filter).sort({ updatedAt: 'desc' });
+  })    
+  .then(results => {
+    console.log(results);
+  })
+  .then(() => {
+    return mongoose.disconnect();
+  })
+  .catch(err => {
+    console.error(`ERROR: ${err.message}`);
+    console.error(err);
+  });
 
 // mongoose.connect(MONGODB_URI)
 //   .then(() => {
@@ -107,18 +107,18 @@ const Note = require('../models/note');
 //     console.error(err);
 //   });
 
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    return Note.find();
-    //return Note.findById(1);
-  })   
-  .then(results => {
-    console.log(results);
-  })
-  .then(() => {
-    return mongoose.disconnect();
-  })
-  .catch(err => {
-    console.error(`ERROR: ${err.message}`);
-    console.error(err);
-  });
+// mongoose.connect(MONGODB_URI)
+//   .then(() => {
+//     return Note.find();
+//     //return Note.findById(1);
+//   })   
+//   .then(results => {
+//     console.log(results);
+//   })
+//   .then(() => {
+//     return mongoose.disconnect();
+//   })
+//   .catch(err => {
+//     console.error(`ERROR: ${err.message}`);
+//     console.error(err);
+//   });
