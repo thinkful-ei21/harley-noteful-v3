@@ -27,12 +27,47 @@ const Note = require('../models/note');
 //     console.error(err);
 //   });
 
+// mongoose.connect(MONGODB_URI)
+//   .then(() => {
+//     return Note.find()
+//       .then(results => {
+//         return Note.findById(results[0]._id);
+//       });
+//     //return Note.findById(1);
+//   })   
+//   .then(results => {
+//     console.log(results);
+//   })
+//   .then(() => {
+//     return mongoose.disconnect();
+//   })
+//   .catch(err => {
+//     console.error(`ERROR: ${err.message}`);
+//     console.error(err);
+//   });
+
+// mongoose.connect(MONGODB_URI)
+//   .then(() => {
+//     return Note.create({
+//       title: 'New Note',
+//       content: 'New Content'
+//     });
+//     //return Note.findById(1);
+//   })   
+//   .then(results => {
+//     console.log(results);
+//   })
+//   .then(() => {
+//     return mongoose.disconnect();
+//   })
+//   .catch(err => {
+//     console.error(`ERROR: ${err.message}`);
+//     console.error(err);
+//   });
+
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    return Note.find()
-      .then(results => {
-        return Note.findById(results[0]._id);
-      });
+    return Note.find();
     //return Note.findById(1);
   })   
   .then(results => {
