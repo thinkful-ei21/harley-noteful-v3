@@ -88,6 +88,25 @@ const Note = require('../models/note');
 //     console.error(err);
 //   });
 
+// mongoose.connect(MONGODB_URI)
+//   .then(() => {
+//     return Note.find()
+//       .then(results => {
+//         return Note.findByIdAndRemove(results[0]._id); 
+//       });
+//     //return Note.findById(1);
+//   })   
+//   .then(results => {
+//     console.log(results);
+//   })
+//   .then(() => {
+//     return mongoose.disconnect();
+//   })
+//   .catch(err => {
+//     console.error(`ERROR: ${err.message}`);
+//     console.error(err);
+//   });
+
 mongoose.connect(MONGODB_URI)
   .then(() => {
     return Note.find();
