@@ -111,7 +111,7 @@ router.put('/:id', (req, res, next) => {
 
   mongoose.connect(MONGODB_URI)
     .then(() => {
-      return Note.findByIdAndUpdate(id,{$set: updateObj}); 
+      return Note.findByIdAndUpdate(id,{$set: updateObj},{new:true}); 
     })   
     .then(result => {
       if (result) {
