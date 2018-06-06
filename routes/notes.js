@@ -98,9 +98,34 @@ router.post('/', (req, res, next) => {
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
+  const id = req.params.id;
 
-  console.log('Update a Note');
-  res.json({ id: 1, title: 'Updated Temp 1' });
+  const { title, content } = req.body;
+  const updateObj = { title, content };
+
+  if (!updateObj.title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      return Note.findByIdAndUpdate(id,{$set: updateObj}); 
+    })   
+    .then(result => {
+      if (result) {
+        res.status(200).json(result);
+      } else {
+        next();
+      }
+    })
+    .then(() => {
+      return mongoose.disconnect();
+    })
+    .catch(err => {
+      next(err);
+    });
 
 });
 
