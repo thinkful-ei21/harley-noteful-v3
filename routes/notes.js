@@ -41,9 +41,26 @@ router.get('/', (req, res, next) => {
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
+  const id = req.params.id;
 
-  console.log('Get a Note');
-  res.json({ id: 1, title: 'Temp 1' });
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      return Note.findById(id);
+    //return Note.findById(1);
+    })   
+    .then(result => {
+      if(result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .then(() => {
+      return mongoose.disconnect();
+    })
+    .catch(err => {
+      next(err);
+    });
 
 });
 
