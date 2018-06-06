@@ -67,9 +67,33 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
 
-  console.log('Create a Note');
-  res.location('path/to/new/document').status(201).json({ id: 2, title: 'Temp 2' });
+  const { title, content } = req.body;
+  const newItem = { title,content };
 
+  if (!newItem.title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      return Note.create(newItem);
+    //return Note.findById(1);
+    })   
+    .then(result => {
+      if (result) {
+        res.location(`${req.originalUrl}/${result._id}`).status(201).json(result);
+      } else {
+        next();
+      } 
+    })
+    .then(() => {
+      return mongoose.disconnect();
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
