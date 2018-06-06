@@ -13,25 +13,18 @@ router.get('/', (req, res, next) => {
 
   const { searchTerm } = req.query;
 
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
-      let filter = {};
+  let filter = {};
+  if (searchTerm) {
+    filter = {$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]};
+  }
 
-      if (searchTerm) {
-        filter = {$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]};
-      }
-
-      return Note.find(filter).sort({ updatedAt: 'desc' });
-    })    
+  Note.find(filter).sort({ updatedAt: 'desc' })    
     .then(results => {
       if(results) {
         res.json(results);
       } else {
         next();
       }
-    })
-    .then(() => {
-      return mongoose.disconnect();
     })
     .catch(err => {
       next(err);
@@ -43,20 +36,13 @@ router.get('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
   const id = req.params.id;
 
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
-      return Note.findById(id);
-    //return Note.findById(1);
-    })   
+  Note.findById(id)
     .then(result => {
       if(result) {
         res.json(result);
       } else {
         next();
       }
-    })
-    .then(() => {
-      return mongoose.disconnect();
     })
     .catch(err => {
       next(err);
@@ -76,20 +62,13 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
-      return Note.create(newItem);
-    //return Note.findById(1);
-    })   
+  Note.create(newItem)
     .then(result => {
       if (result) {
         res.location(`${req.originalUrl}/${result._id}`).status(201).json(result);
       } else {
         next();
       } 
-    })
-    .then(() => {
-      return mongoose.disconnect();
     })
     .catch(err => {
       next(err);
@@ -109,19 +88,13 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
-      return Note.findByIdAndUpdate(id,{$set: updateObj},{new:true}); 
-    })   
+  Note.findByIdAndUpdate(id,{$set: updateObj},{new:true}) 
     .then(result => {
       if (result) {
         res.status(200).json(result);
       } else {
         next();
       }
-    })
-    .then(() => {
-      return mongoose.disconnect();
     })
     .catch(err => {
       next(err);
@@ -134,15 +107,9 @@ router.delete('/:id', (req, res, next) => {
 
   const id = req.params.id;
 
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
-      return Note.findByIdAndRemove(id); 
-    })   
+  Note.findByIdAndRemove(id)
     .then(() => {
       res.sendStatus(204);
-    })
-    .then(() => {
-      return mongoose.disconnect();
     })
     .catch(err => {
       next(err);
