@@ -138,6 +138,38 @@ describe('Notes API resource', function() {
         });
     });
   });
+
+  describe('PUT /api/notes', function () {
+    it('should update fields you send over', function () {
+      const updateData = {
+        'title': 'The best article about cats ever!',
+        'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...'
+      };
+
+      let res;
+      
+      return Note.findOne()
+        .then(function(note) {
+          updateData.id = note.id;
+          return chai.request(app)
+            .put(`/api/notes/${note.id}`)
+            .send(updateData);
+        })
+        .then(function (_res) {
+          res = _res;
+          expect(res).to.have.status(200);
+          return Note.findById(res.body.id);
+        })
+        // 3) then compare the API response to the database results
+        .then(data => {
+          expect(res.body.id).to.equal(data.id);
+          expect(res.body.title).to.equal(data.title);
+          expect(res.body.content).to.equal(data.content);
+          expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
+          expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
+        });
+    });
+  });
     
 });
 
