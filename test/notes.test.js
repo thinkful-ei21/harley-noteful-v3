@@ -137,6 +137,20 @@ describe('Notes API resource', function() {
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
+
+    it('should respond with 400 if title missing', () => {
+      const newItem = {
+        'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...'
+      };
+
+      return chai.request(app)
+        .post('/api/notes')
+        .send(newItem)
+        .catch(err => err.response)
+        .then(res => {
+          expect(res).to.have.status(400);
+        });
+    });
   });
 
   describe('PUT /api/notes', function () {
@@ -167,6 +181,25 @@ describe('Notes API resource', function() {
           expect(res.body.content).to.equal(data.content);
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
+        });
+    });
+
+
+    it('should respond with 400 if title missing', () => {
+      const updateData = {
+        'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...'
+      };
+
+      return Note.findOne()
+        .then(function(note) {
+          updateData.id = note.id;
+          return chai.request(app)
+            .put(`/api/notes/${note.id}`)
+            .send(updateData);
+        })
+        .catch(err => err.response)
+        .then(res => {
+          expect(res).to.have.status(400);
         });
     });
   });
