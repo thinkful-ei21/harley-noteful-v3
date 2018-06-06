@@ -17,23 +17,23 @@ chai.use(chaiHttp);
 describe('Notes API resource', function() {
 
   before(function () {
-    console.log('before');
+    //console.log('before');
     return mongoose.connect(TEST_MONGODB_URI)
       .then(() => mongoose.connection.db.dropDatabase());
   });
     
   beforeEach(function () {
-    console.log('beforeEach');
+    //console.log('beforeEach');
     return Note.insertMany(seedNotes);
   });
     
   afterEach(function () {
-    console.log('afterEach');
+    //console.log('afterEach');
     return mongoose.connection.db.dropDatabase();
   });
     
   after(function () {
-    console.log('after');
+    //console.log('after');
     return mongoose.disconnect();
   });
 
@@ -55,8 +55,55 @@ describe('Notes API resource', function() {
         });
     });
 
+    it('should return notes with right fields', function() {
+      let resNote;
+      return chai.request(app)
+        .get('/api/notes')
+        .then(function(res) {
+          res.body.forEach(function(note) {
+            expect(note).to.be.a('object');
+            expect(note).to.include.keys(
+              'id','title','content','createdAt','updatedAt');
+          });
+          resNote = res.body[0];
+          return Note.findById(resNote.id);
+        })
+        .then(function(note) {
+          expect(resNote.id).to.equal(note.id);
+          expect(resNote.title).to.equal(note.title);
+          expect(resNote.content).to.equal(note.content);
+          expect(new Date(resNote.createdAt)).to.eql(note.createdAt);
+          expect(new Date(resNote.updatedAt)).to.eql(note.updatedAt);
+        });
+    });
     
-    
+  });
+
+  describe('GET /api/notes/:id', function () {
+    it('should return correct note', function () {
+      let data;
+      // 1) First, call the database
+      return Note.findOne()
+        .then(_data => {
+          data = _data;
+          // 2) then call the API with the ID
+          return chai.request(app).get(`/api/notes/${data.id}`);
+        })
+        .then((res) => {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+
+          // 3) then compare database results to API response
+          expect(res.body.id).to.equal(data.id);
+          expect(res.body.title).to.equal(data.title);
+          expect(res.body.content).to.equal(data.content);
+          expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
+          expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
+        });
+    });
   });
     
 });
