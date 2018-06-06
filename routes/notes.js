@@ -132,8 +132,21 @@ router.put('/:id', (req, res, next) => {
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 router.delete('/:id', (req, res, next) => {
 
-  console.log('Delete a Note');
-  res.status(204).end();
+  const id = req.params.id;
+
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      return Note.findByIdAndRemove(id); 
+    })   
+    .then(() => {
+      res.sendStatus(204);
+    })
+    .then(() => {
+      return mongoose.disconnect();
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 module.exports = router;
