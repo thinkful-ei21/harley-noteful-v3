@@ -189,7 +189,7 @@ describe('Notes API resource', function() {
       const updateData = {
         'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...'
       };
-
+      //push again
       return Note.findOne()
         .then(function(note) {
           updateData.id = note.id;
