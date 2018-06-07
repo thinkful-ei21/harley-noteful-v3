@@ -6,19 +6,12 @@ const mongoose = require('mongoose');
 const { MONGODB_URI } = require('../config');
 
 const router = express.Router();
-const Note = require('../models/note');
+const Folder = require('../models/folder');
 
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/', (req, res, next) => {
 
-  const { searchTerm } = req.query;
-
-  let filter = {};
-  if (searchTerm) {
-    filter = {$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]};
-  }
-
-  Note.find(filter).sort({ updatedAt: 'desc' })    
+  Folder.find().sort({ name: 'asc' })    
     .then(results => {
       if(results) {
         res.json(results);
@@ -42,7 +35,7 @@ router.get('/:id', (req, res, next) => {
     return next(err);
   }
 
-  Note.findById(id)
+  Folder.findById(id)
     .then(result => {
       if(result) {
         res.json(result);
@@ -59,16 +52,16 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
 
-  const { title, content } = req.body;
-  const newItem = { title,content };
+  const { name } = req.body;
+  const newItem = { name };
 
-  if (!newItem.title) {
-    const err = new Error('Missing `title` in request body');
+  if (!newItem.name) {
+    const err = new Error('Missing `name` in request body');
     err.status = 400;
     return next(err);
   }
 
-  Note.create(newItem)
+  Folder.create(newItem)
     .then(result => {
       if (result) {
         res.location(`${req.originalUrl}/${result._id}`).status(201).json(result);
@@ -77,6 +70,10 @@ router.post('/', (req, res, next) => {
       } 
     })
     .catch(err => {
+      if (err.code === 11000) {
+        err = new Error('The folder name already exists');
+        err.status = 400;
+      }
       next(err);
     });
 });
@@ -85,11 +82,11 @@ router.post('/', (req, res, next) => {
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
 
-  const { title, content } = req.body;
-  const updateObj = { title, content };
+  const { name } = req.body;
+  const updateObj = { name };
 
-  if (!updateObj.title) {
-    const err = new Error('Missing `title` in request body');
+  if (!updateObj.name) {
+    const err = new Error('Missing `name` in request body');
     err.status = 400;
     return next(err);
   }
@@ -100,7 +97,7 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  Note.findByIdAndUpdate(id,{$set: updateObj},{new:true}) 
+  Folder.findByIdAndUpdate(id,{$set: updateObj},{new:true}) 
     .then(result => {
       if (result) {
         res.status(200).json(result);
@@ -109,6 +106,10 @@ router.put('/:id', (req, res, next) => {
       }
     })
     .catch(err => {
+      if (err.code === 11000) {
+        err = new Error('The folder name already exists');
+        err.status = 400;
+      }
       next(err);
     });
 
@@ -125,7 +126,7 @@ router.delete('/:id', (req, res, next) => {
     return next(err);
   }
 
-  Note.findByIdAndRemove(id)
+  Folder.findByIdAndRemove(id)
     .then(() => {
       res.sendStatus(204);
     })
