@@ -11,20 +11,25 @@ const Note = require('../models/note');
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/', (req, res, next) => {
 
-  const { searchTerm, folderId } = req.query;
+  const { searchTerm, folderId, tagId } = req.query;
 
   let filter = {};
-  if (searchTerm && folderId) {
-    filter = {$and:[{folderId},{$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]}]};
-  } else if (searchTerm) {
-    filter = {$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]};
-  } else if (folderId) {
-    filter = {'folderId':folderId};
+
+  if (searchTerm) {
+    filter.$or = [{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}];
+  }
+  
+  if (folderId) {
+    filter.folderId = folderId;
+  }
+
+  if (tagId) {
+    filter.tagId = tagId;
   }
 
   //console.log(filter);
 
-  Note.find(filter).sort({ updatedAt: 'desc' })    
+  Note.find(filter).populate('tags').sort({ updatedAt: 'desc' })    
     .then(results => {
       if(results) {
         res.json(results);
@@ -49,6 +54,7 @@ router.get('/:id', (req, res, next) => {
   }
 
   Note.findById(id)
+    .populate('tags')
     .then(result => {
       if(result) {
         res.json(result);
@@ -65,8 +71,14 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
 
-  const { title, content, folderId } = req.body;
-  const newItem = { title,content };
+  const { title, content, folderId, tags } = req.body;
+  const newItem = { title,content, folderId: null, tags: []};
+
+  if (!newItem.title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
 
   if (folderId) {
     if (!mongoose.Types.ObjectId.isValid(folderId)) {
@@ -77,11 +89,14 @@ router.post('/', (req, res, next) => {
     newItem.folderId = folderId;
   }
 
-  if (!newItem.title) {
-    const err = new Error('Missing `title` in request body');
-    err.status = 400;
-    return next(err);
-  }
+  tags.forEach(tagId => {
+    if (!mongoose.Types.ObjectId.isValid(tagId)) {
+      const err = new Error('A `tagId` is not valid');
+      err.status = 400;
+      return next(err);
+    }
+    newItem.tags.push(tagId);
+  });
 
   Note.create(newItem)
     .then(result => {
@@ -100,8 +115,8 @@ router.post('/', (req, res, next) => {
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
 
-  const { title, content, folderId } = req.body;
-  const updateObj = { title, content };
+  const { title, content, folderId, tags } = req.body;
+  const updateObj = { title, content, folderId: null, tags: [] };
 
   if (folderId) {
     if (!mongoose.Types.ObjectId.isValid(folderId)) {
@@ -124,7 +139,16 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  Note.findByIdAndUpdate(id,{$set: updateObj},{new:true}) 
+  tags.forEach(tagId => {
+    if (!mongoose.Types.ObjectId.isValid(tagId)) {
+      const err = new Error('A `tagId` is not valid');
+      err.status = 400;
+      return next(err);
+    }
+    updateObj.tags.push(tagId);
+  });
+
+  Note.findByIdAndUpdate(id,updateObj,{new:true}) 
     .then(result => {
       if (result) {
         res.status(200).json(result);
