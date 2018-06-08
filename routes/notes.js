@@ -72,7 +72,7 @@ router.get('/:id', (req, res, next) => {
 router.post('/', (req, res, next) => {
 
   const { title, content, folderId, tags } = req.body;
-  const newItem = { title,content, folderId: null, tags: []};
+  const newItem = { title,content, tags: []};
 
   if (!newItem.title) {
     const err = new Error('Missing `title` in request body');
@@ -89,14 +89,16 @@ router.post('/', (req, res, next) => {
     newItem.folderId = folderId;
   }
 
-  tags.forEach(tagId => {
-    if (!mongoose.Types.ObjectId.isValid(tagId)) {
-      const err = new Error('A `tagId` is not valid');
-      err.status = 400;
-      return next(err);
-    }
-    newItem.tags.push(tagId);
-  });
+  if (tags) {
+    tags.forEach(tagId => {
+      if (!mongoose.Types.ObjectId.isValid(tagId)) {
+        const err = new Error('A `tagId` is not valid');
+        err.status = 400;
+        return next(err);
+      }
+      newItem.tags.push(tagId);
+    });
+  }
 
   Note.create(newItem)
     .then(result => {
@@ -116,7 +118,7 @@ router.put('/:id', (req, res, next) => {
   const id = req.params.id;
 
   const { title, content, folderId, tags } = req.body;
-  const updateObj = { title, content, folderId: null, tags: [] };
+  const updateObj = { title, content, tags: [] };
 
   if (folderId) {
     if (!mongoose.Types.ObjectId.isValid(folderId)) {
@@ -139,14 +141,17 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  tags.forEach(tagId => {
-    if (!mongoose.Types.ObjectId.isValid(tagId)) {
-      const err = new Error('A `tagId` is not valid');
-      err.status = 400;
-      return next(err);
-    }
-    updateObj.tags.push(tagId);
-  });
+  if (tags) {
+    tags.forEach(tagId => {
+      if (!mongoose.Types.ObjectId.isValid(tagId)) {
+        const err = new Error('A `tagId` is not valid');
+        err.status = 400;
+        return next(err);
+      }
+      updateObj.tags.push(tagId);
+    });
+  }
+
 
   Note.findByIdAndUpdate(id,updateObj,{new:true}) 
     .then(result => {
