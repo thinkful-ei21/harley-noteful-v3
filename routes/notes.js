@@ -11,12 +11,18 @@ const Note = require('../models/note');
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/', (req, res, next) => {
 
-  const { searchTerm } = req.query;
+  const { searchTerm, folderId } = req.query;
 
   let filter = {};
-  if (searchTerm) {
+  if (searchTerm && folderId) {
+    filter = {$and:[{folderId},{$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]}]};
+  } else if (searchTerm) {
     filter = {$or:[{title:{ $regex: searchTerm }},{content:{ $regex: searchTerm }}]};
+  } else if (folderId) {
+    filter = {'folderId':folderId};
   }
+
+  //console.log(filter);
 
   Note.find(filter).sort({ updatedAt: 'desc' })    
     .then(results => {
@@ -59,8 +65,17 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
 
-  const { title, content } = req.body;
+  const { title, content, folderId } = req.body;
   const newItem = { title,content };
+
+  if (folderId) {
+    if (!mongoose.Types.ObjectId.isValid(folderId)) {
+      const err = new Error('The `folderId` is not valid');
+      err.status = 400;
+      return next(err);
+    }
+    newItem.folderId = folderId;
+  }
 
   if (!newItem.title) {
     const err = new Error('Missing `title` in request body');
@@ -85,8 +100,17 @@ router.post('/', (req, res, next) => {
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
 
-  const { title, content } = req.body;
+  const { title, content, folderId } = req.body;
   const updateObj = { title, content };
+
+  if (folderId) {
+    if (!mongoose.Types.ObjectId.isValid(folderId)) {
+      const err = new Error('The `folderId` is not valid');
+      err.status = 400;
+      return next(err);
+    }
+    updateObj.folderId = folderId;
+  }
 
   if (!updateObj.title) {
     const err = new Error('Missing `title` in request body');

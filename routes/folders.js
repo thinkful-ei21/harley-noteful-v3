@@ -97,7 +97,7 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  Folder.findByIdAndUpdate(id,{$set: updateObj},{new:true}) 
+  Folder.findByIdAndUpdate(id,updateObj,{new:true}) 
     .then(result => {
       if (result) {
         res.status(200).json(result);
